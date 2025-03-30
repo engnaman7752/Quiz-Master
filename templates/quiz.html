@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <title>Quiz Management Dashboard</title>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Welcome Admin</h1>
+      
+      <div id="navbar">
+        <a href="/admin">Home |</a>
+        <a href="/">Quiz |</a>
+        <a href="/">Summary |</a>
+        <a href="/user">Logout |</a>
+
+        <input
+          type="text"
+          id="search"
+          name="search"
+          placeholder="Search"
+          required
+        />
+        <button class="btn-start">Search</button>
+        </form>
+      </div>
+      <form action="{{ url_for('quiz', chapter_id=chapter.id) }}" method="POST">
+      <h2>Questions for {{ chapter.name }}</h2>
+
+      <div class="subject-navbar">
+      <div class="table-header">
+        <p>ID</p>
+        <p>Q Title</p>
+        <p>Action</p>
+      </div>
+        {% for question in questions %}
+        <div class="table-row">
+          <td>{{ question.id }}</td>
+          <td>{{ question.text }}</td>
+          <td>
+            <a href="{{ url_for('/', question_id=question.id) }}"
+              >Edit</a
+            >
+            |
+            <a href="{{ url_for('/', question_id=question.id) }}"
+              >Delete</a
+            >
+          </td>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Add New Question Form -->
+      <div class="add-chapter">
+        <button>
+          <a href="{{ url_for('addquestion', chapter_id=chapter.id) }}">Add question</a>
+        </button>
+        
+
+      <!-- View All Quizzes -->
+      <div class="all-subjects-link">
+        <a href="all_Quiz.html">View All Quizzes</a>
+      </div>
+
+      <!-- Add New Quiz Form -->
+      <div class="add-chapter">
+        <form action="{{ url_for('new_quiz') }}" method="POST">
+          <button type="submit">Add New Quiz</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

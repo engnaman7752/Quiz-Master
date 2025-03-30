@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Page</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body id="user-page">
+    <h1>Welcome to Quiz Master</h1>
+    <h2>Login</h2>
+    {% if error %}
+    <p>{{ error }}</p>
+    {% endif %}
+    <div class="login-circle">
+      <form action="/user" method="POST">
+        <!-- Username Field -->
+        <label for="username">Username (Email ID)</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Enter your username"
+          required
+        />
+
+        <!-- Password Field -->
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+        />
+
+        <!-- Login Role Selection -->
+        <label for="role">Login as:</label>
+        <div>
+          <label>
+            <input type="radio" name="role" value="user" checked /> User
+          </label>
+          <label>
+            <input type="radio" name="role" value="admin" /> Admin
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit">Login</button>
+        <br />
+
+        <!-- Create User Link -->
+        <div id="newuser">
+          <a href="/newuser">Create User</a>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Quiz</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div id="container">
+      <h1>Welcome Admin</h1>
+      <h2>New Quiz</h2>
+
+      <div class="form-group">
+        <label for="chapter-id">Chapter ID</label>
+        <div class="input-box small">
+          <select id="chapter-id">
+            <option value="" disabled selected>Select chapter ID</option>
+            <option value="1">Chapter 1</option>
+            <option value="2">Chapter 2</option>
+            <option value="3">Chapter 3</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="quiz-date">Date</label>
+        <div class="input-box small">
+          <input type="date" id="quiz-date" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="quiz-time">Duration</label>
+        <div class="input-box small">
+          <input
+            type="number"
+            id="quiz-time"
+            placeholder="Enter duration (minutes)"
+            min="1"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="quiz-marks">Total Marks</label>
+        <div class="input-box small">
+          <input
+            type="number"
+            id="quiz-marks"
+            placeholder="Enter total marks"
+            min="1"
+          />
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="save-next">Save</button>
+        <button class="submit">Cancel</button>
+      </div>
+    </div>
+  </body>
+</html>

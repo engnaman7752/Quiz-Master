@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View the Quiz</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="container">
+      <h1>View the Quiz</h1>
+      <div class="quiz-detail">
+        <label>ID</label>
+        <p>1</p>
+      </div>
+      <div class="quiz-detail">
+        <label>Subject</label>
+        <p>Mathematics</p>
+      </div>
+      <div class="quiz-detail">
+        <label>Chapter</label>
+        <p>Algebra</p>
+      </div>
+      <div class="quiz-detail">
+        <label>Schedule Date</label>
+        <p>2025-01-22</p>
+      </div>
+      <div class="quiz-detail">
+        <label>Duration</label>
+        <p>45 minutes</p>
+      </div>
+      <button class="btn-start" onclick="closePage()">Close</button>
+    </div>
+
+    <script>
+      // Function to close the page or navigate to the dashboard
+      function closePage() {
+        window.location.href = "userdash.html"; // Replace with your desired route
+      }
+    </script>
+  </body>
+</html>

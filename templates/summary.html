@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+    
+  </head>
+  <body>
+   <div id="container">
+    <h1>Welcome, User Name</h1>
+
+    <div id="navbar">
+      <a href="userdash.html">Home |</a>
+      <a href="scores.html">Scores |</a>
+      <a href="summary.html">Summary |</a>
+      <a href="user.html">Logout |</a>
+      <input
+        type="text"
+        id="search"
+        name="Search"
+        placeholder="Search"
+        required
+      />
+    </div>
+
+    <div class="charts-container">
+      <div class="chart">
+        <h2>Subject-wise Number of Quizzes</h2>
+        <canvas id="subjectBarChart"></canvas>
+      </div>
+
+      <div class="chart">
+        <h2>Month-wise Quiz Attempts</h2>
+        <canvas id="monthPieChart"></canvas>
+      </div>
+    </div>
+    </div>
+  </div>
+  </body>
+</html>

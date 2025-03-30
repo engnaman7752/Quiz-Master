@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Chapter</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div id="container">
+      <h1>Welcome Admin</h1>
+      <h2>New Chapter for {{ subject.name }}</h2>
+      <!-- Display the selected subject name -->
+
+      <!-- Form to Add Chapter -->
+      <form
+        action="{{ url_for('edit_chapter', chapter_id=chapter.id) if chapter else url_for('addchapter', subject_id=subject.id) }}"
+        method="POST"
+      >
+        <!-- Hidden field to send subject_id -->
+        <input type="hidden" name="subject_id" value="{{ subject.id }}" />
+
+        <div class="form-group">
+          <label for="chapter-name">Chapter Name</label>
+          <div class="input-box small">
+            <input
+              type="text"
+              id="chapter-name"
+              name="name"
+              value="{{ chapter.name if chapter else '' }}"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="chapter-description">Description</label>
+          <div class="input-box large">
+            <textarea
+              id="chapter-description"
+              name="description"
+              value="{{ chapter.description if chapter else 'Enter chapter description' }}"
+              rows="5"
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="save-next">
+            {{ 'Save Changes' if chapter else 'Add Chapter' }}
+          </button>
+          <button type="reset" class="submit" onclick="window.history.back();">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

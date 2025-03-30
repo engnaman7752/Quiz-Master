@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div id="container">
+      <h1>Welcome,{{n}}</h1>
+
+      <div id="navbar">
+        <a href="/userdash">Home |</a>
+        <a href="/scores">Scores |</a>
+        <a href="/summary">Summary |</a>
+        <a href="/user">Logout|</a>
+        <input
+          type="text"
+          id="search"
+          name="Search"
+          placeholder="Search"
+          required
+        />
+        <button class="btn-start">Search</button>
+      </div>
+
+      <h2>Upcoming Quizzes</h2>
+      <table id="quiz-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>No. of Questions</th>
+            <th>Date</th>
+            <th>Duration</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>10</td>
+            <td>2025-01-20</td>
+            <td>30 minutes</td>
+            <td>
+              <button class="btn-start"><a href="/start">Start</a></button>
+              <button class="btn-view"><a href="view.html">View</a></button>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>15</td>
+            <td>2025-01-22</td>
+            <td>45 minutes</td>
+            <td>
+              <button class="btn-start"><a href="start.html">Start</a></button>
+              <button class="btn-view"><a href="view.html">View</a></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>PAST QUIZZES</h2>
+      <table id="quiz-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>No. of Questions</th>
+            <th>Date</th>
+            <th>Duration</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>10</td>
+            <td>2025-01-20</td>
+            <td>30 minutes</td>
+            <td>
+              <button class="btn-start"><a href="/start">Start</a></button>
+              <button class="btn-view"><a href="view.html">View</a></button>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>15</td>
+            <td>2025-01-22</td>
+            <td>45 minutes</td>
+            <td>
+              <button class="btn-start"><a href="start.html">Start</a></button>
+              <button class="btn-view"><a href="view.html">View</a></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

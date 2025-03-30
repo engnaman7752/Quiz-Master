@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Page</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <script>
+      function saveAndNext() {
+        alert("Your answer has been saved. Moving to the next question.");
+      }
+
+      function submitQuiz() {
+        const confirmation = confirm(
+          "Are you sure you want to submit the quiz?"
+        );
+        if (confirmation) {
+          alert("Quiz submitted successfully!");
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Start the Quiz</h1>
+      <div id="Qno"><label>Q No.</label> 3/15</div>
+      <div id="timer"><label>Time Left:</label> 05:00</div>
+      <div id="question statement">
+        <p>What is the capital of France?</p>
+      </div>
+      <div id="options">
+        <label><input type="radio" name="choice" value="1" /> Paris</label>
+        <label><input type="radio" name="choice" value="2" /> London</label>
+        <label><input type="radio" name="choice" value="3" /> Berlin</label>
+        <label><input type="radio" name="choice" value="4" /> Madrid</label>
+      </div>
+      <div id="buttons">
+        <button class="save-next" onclick="saveAndNext()">Save and Next</button>
+        <button class="submit" onclick="submitQuiz()">Submit Quiz</button>
+      </div>
+    </div>
+  </body>
+</html>

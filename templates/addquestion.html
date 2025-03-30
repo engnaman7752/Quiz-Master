@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Question</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div id="container">
+      <h1>Welcome Admin</h1>
+      <h2>Add New Question</h2>
+
+      <form
+        action="{{ url_for('addquestion', chapter_id=chapter.id) }}"
+        method="POST"
+      >
+        <!-- Chapter Selection (Dropdown) -->
+        <div class="form-group">
+          <label for="chapter-id">Select Chapter</label>
+          <div class="input-box small">
+            <select id="chapter-id" name="chapter_id" required>
+              <option value="{{ chapter.id }}" selected>
+                Chapter {{ chapter.id }}
+              </option>
+              {% for ch in chapters %}
+              <option value="{{ ch.id }}">Chapter {{ ch.id }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Question Title -->
+        <div class="form-group">
+          <label for="question-title">Question Title</label>
+          <div class="input-box small">
+            <input
+              type="text"
+              id="question-title"
+              name="title"
+              placeholder="Enter Question Title"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Question Statement -->
+        <div class="form-group">
+          <label for="question-statement">Question Statement</label>
+          <div class="input-box large">
+            <textarea
+              id="question-statement"
+              name="text"
+              placeholder="Enter the question statement"
+              rows="5"
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Options Section -->
+        <div class="form-group">
+          <h3>Single Option Correct</h3>
+          <div class="option">
+            <label for="option-1">Option 1</label>
+            <input
+              type="text"
+              id="option-1"
+              name="option1"
+              placeholder="Enter Option 1"
+              required
+            />
+
+            <label for="option-2">Option 2</label>
+            <input
+              type="text"
+              id="option-2"
+              name="option2"
+              placeholder="Enter Option 2"
+              required
+            />
+
+            <label for="option-3">Option 3</label>
+            <input
+              type="text"
+              id="option-3"
+              name="option3"
+              placeholder="Enter Option 3"
+              required
+            />
+
+            <label for="option-4">Option 4</label>
+            <input
+              type="text"
+              id="option-4"
+              name="option4"
+              placeholder="Enter Option 4"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Correct Option -->
+        <div class="form-group">
+          <label for="correct-option">Correct Option</label>
+          <div class="input-box small">
+            <select id="correct-option" name="correct_option" required>
+              <option value="" disabled selected>
+                Select the correct option
+              </option>
+              <option value="1">Option 1</option>
+              <option value="2">Option 2</option>
+              <option value="3">Option 3</option>
+              <option value="4">Option 4</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Marks -->
+        <div class="form-group">
+          <label for="marks">Marks</label>
+          <div class="input-box small">
+            <input
+              type="number"
+              id="marks"
+              name="marks"
+              placeholder="Enter marks for this question"
+              min="1"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group">
+          <button type="submit" class="save-next">Save and Next</button>
+          <button type="button" class="submit">Close</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

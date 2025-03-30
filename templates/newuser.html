@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New User Registration</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body id="login-page">
+    <h1>Welcome to Quiz Master</h1>
+    {% if error %}
+    <p>{{ error }}</p>
+    {% endif %}
+    <h2>Registration</h2>
+    <div class="login-circle">
+      <form action="\newuser" method="POST">
+        <label for="name">Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Enter your name"
+          required
+        />
+
+        <label for="username">Username (Email ID)</label>
+        <input
+          type="email"
+          id="username"
+          name="username"
+          placeholder="Enter your email"
+          required
+        />
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+        />
+
+        <label for="qualification">Qualification</label>
+        <select id="qualification" name="qualification" required>
+          <option value="" disabled selected>Select your qualification</option>
+          <option value="X">X</option>
+          <option value="XII">XII</option>
+          <option value="Undergraduate">Undergraduate</option>
+          <option value="Postgraduate">Postgraduate</option>
+          <option value="Ph.D">Ph.D</option>
+        </select>
+
+        <label for="dob">Date of Birth</label>
+        <input type="date" id="dob" name="dob" required />
+        <label for="role">Register as:</label>
+        <div>
+          <label>
+            <input type="radio" name="role" value="user" checked /> User
+          </label>
+          <label>
+            <input type="radio" name="role" value="admin" /> Admin
+          </label>
+        </div>
+
+        <button type="submit">Register</button>
+      </form>
+      <div id="newuser">
+        <a href="/user">Existing User? Login</a>
+      </div>
+    </div>
+  </body>
+</html>
