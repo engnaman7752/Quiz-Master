@@ -12,7 +12,7 @@ Quiz System: Users can take quizzes and receive scores.
 
 Dynamic Questions: Questions can be fetched from a database.
 
-Leaderboard: Track top scores (if implemented).
+Leaderboard: Track top scores .
 
 Responsive UI: Works on all devices.
 
@@ -58,17 +58,17 @@ python app.py
 
 Open the app in a browser:
 
-http://127.0.0.1:5000/
+http://127.0.0.1:8000/
 
 Usage
 
 Register and log in.
 
-Select a quiz category (if available).
+Select a quiz category .
 
 Answer the questions and get your score.
 
-View the leaderboard (if implemented).
+View the leaderboard .
 
 Future Improvements
 
@@ -88,5 +88,5 @@ This project is open-source. Feel free to contribute!
 
 Contact
 
-For queries or contributions, reach out via 2023kuec2073@iiitkota.ac.in or engnaman7752 .
+For queries or contributions, reach out via 2023kuec2073@iiitkota.ac.in or github.com/engnaman7752 .
 
