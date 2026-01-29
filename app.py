@@ -1,1 +1,114 @@
-from flask import Flask, render_template, request, redirect, url_for, session\nfrom flask_sqlalchemy import SQLAlchemy\nfrom datetime import datetime\nfrom sqlalchemy import text\nimport os\n\napp = Flask(__name__)\n\n# ========================================\n# PRODUCTION-READY CONFIGURATION\n# ========================================\n\n# Use environment variable for secret key (more secure for production)\napp.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')\n\n# Database configuration - supports both SQLite (local) and PostgreSQL (Render)\nif os.environ.get('DATABASE_URL'):\n    # For Render.com PostgreSQL\n    database_url = os.environ.get('DATABASE_URL')\n    # Fix for SQLAlchemy (postgres:// to postgresql://)\n    if database_url.startswith("postgres://"):\n        database_url = database_url.replace("postgres://", "postgresql://", 1)\n    app.config['SQLALCHEMY_DATABASE_URI'] = database_url\nelse:\n    # For local development with SQLite\n    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///new.db'\n\napp.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False\n\ndb = SQLAlchemy(app)\n\n# ========================================\n# DATABASE MODELS\n# ========================================\n\n# Define the userdetail table\nclass userdetail(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    name = db.Column(db.String(200), nullable=False)\n    username = db.Column(db.String(200), unique=True, nullable=False)\n    password = db.Column(db.String(200), nullable=False)\n    dob = db.Column(db.Date, nullable=False)\n    qualification = db.Column(db.String(100), nullable=False)\n    role = db.Column(db.String(120), nullable=False)\n\nclass Subject(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    name = db.Column(db.String(200), nullable=False, unique=True)\n    description = db.Column(db.Text, nullable=True)\n    chapters = db.relationship('Chapter', backref='subject', lazy=True, cascade='all, delete-orphan')\n\nclass Chapter(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    name = db.Column(db.String(200), nullable=False)\n    description = db.Column(db.Text, nullable=True)\n    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)\n    questions = db.relationship('Question', backref='chapter', lazy=True, cascade='all, delete-orphan')\n    quizzes = db.relationship('Quiz', backref='chapter_ref', lazy=True, cascade='all, delete-orphan')\n\nclass Question(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    text = db.Column(db.Text, nullable=False)\n    title = db.Column(db.String(255), nullable=False)\n    option1 = db.Column(db.String(200), nullable=False)\n    option2 = db.Column(db.String(200), nullable=False)\n    option3 = db.Column(db.String(200), nullable=False)\n    option4 = db.Column(db.String(200), nullable=False)\n    correct_option = db.Column(db.String(1), nullable=False)\n    marks = db.Column(db.Integer, nullable=False, default=1)\n    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)\n\nclass Result(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    user_id = db.Column(db.Integer, db.ForeignKey('userdetail.id'), nullable=False)\n    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)\n    selected_option = db.Column(db.String(1), nullable=False)\n    is_correct = db.Column(db.Boolean, nullable=False)\n\nclass Quiz(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)\n    quiz_date = db.Column(db.Date, nullable=False)\n    duration = db.Column(db.Integer, nullable=False)\n    total_marks = db.Column(db.Integer, nullable=False)\n\n# Create tables\nwith app.app_context():\n    db.create_all()\n\n# ========================================\n# ROUTES\n# ========================================\n\n# Health check endpoint for Render\n@app.route('/health')\ndef health():\n    return {'status': 'healthy', 'database': 'connected'}, 200\n\n@app.route('/')\n@app.route('/user', methods=['GET', 'POST'])\ndef login():\n    if request.method == 'POST':\n        username = request.form['username']\n        password = request.form['password']\n        role = request.form['role']\n\n        user = userdetail.query.filter_by(username=username).first()\n\n        if user:\n            if user.password == password:\n                session['username'] = username\n                if user.role == 'user':\n                    return redirect(url_for('userdash', username=username))\n                else:\n                    return redirect(url_for('admin', username=username))\n            else:\n                return render_template("user.html", error="Incorrect password!")\n        else:\n            return render_template("user.html", error="Username does not exist! Register first.")\n\n    return render_template("user.html", error=False)\n\n@app.route('/newuser', methods=['GET', 'POST'])\ndef register():\n    if request.method == 'POST':\n        name = request.form['name']\n        username = request.form['username']\n        password = request.form['password']\n        dob_string = request.form['dob']\n        dob = datetime.strptime(dob_string, '%Y-%m-%d').date()\n        qualification = request.form['qualification']\n        role = request.form['role']\n\n        existing_user = userdetail.query.filter_by(username=username).first()\n        if existing_user:\n            return render_template('newuser.html', error="Username already exists! Please use a different one.")\n\n        new_user = userdetail(\n            name=name,\n            username=username,\n            password=password,\n            dob=dob,\n            qualification=qualification,\n            role=role\n        )\n        db.session.add(new_user)\n        db.session.commit()\n\n        return redirect(url_for('login'))\n\n    return render_template('newuser.html', error=False)\n\n@app.route('/userdash/<username>')\ndef userdash(username):\n    user = userdetail.query.filter_by(username=username).first()\n    if not user:\n        return "User not found!", 404\n    return render_template("userdash.html", n=user.name)\n\n@app.route('/admin/<username>')\ndef admin(username):\n    user = userdetail.query.filter_by(username=username).first()\n    \n    if not user:\n        return "User not found!", 404\n    subjects = Subject.query.all()\n    return render_template("admin.html", n=user.name,subjects=subjects)\n\n@app.route('/start')\ndef start():\n    return render_template("start.html")\n\n@app.route('/addsubject', methods=['GET', 'POST'])\ndef add_subject():\n    if request.method == 'POST':\n        name = request.form['name']\n        description = request.form['description']\n\n        new_subject = Subject(name=name, description=description)\n        db.session.add(new_subject)\n        db.session.commit()\n\n        username = session.get('username')\n        if not username:\n            return redirect(url_for('login'))\n\n        return redirect(url_for('admin', username=username))\n\n    return render_template('addsubject.html')\n\n@app.route('/addchapter/<int:subject_id>', methods=['GET', 'POST'])\ndef addchapter(subject_id):\n    subject = Subject.query.get(subject_id)\n\n    if request.method == 'POST':\n        name = request.form['name']\n        description = request.form['description']\n        username = session.get('username')\n        new_chapter = Chapter(name=name, description=description, subject_id=subject_id)\n        db.session.add(new_chapter)\n        db.session.commit()\n        return redirect(url_for('admin', username=username))\n\n    return render_template('addchapter.html', subject=subject)\n\n@app.route('/delete_chapter/<int:chapter_id>', methods=['POST'])\ndef delete_chapter(chapter_id):\n    chapter = Chapter.query.get(chapter_id)\n\n    if not chapter:\n        return "Chapter not found!", 404\n\n    db.session.delete(chapter)\n    db.session.commit()\n    return redirect(url_for('admin', username=session.get('username')))%c3%82\n\n@app.route('/delete_subject/<int:subject_id>', methods=['POST'])\ndef delete_subject(subject_id):\n    subject = Subject.query.get(subject_id)\n\n    if not subject:\n        return "Chapter not found!", 404\n\n    db.session.delete(subject)\n    db.session.commit()\n    return redirect(url_for('admin', username=session.get('username')))%c3%82\n\n@app.route('/edit_chapter/<int:chapter_id>', methods=['GET', 'POST'])\ndef edit_chapter(chapter_id,subject_id):\n    chapter = Chapter.query.get(chapter_id)\n    subject = Subject.query.get(subject_id)\n    if not chapter:\n        return "Chapter not found!", 404\n\n    if request.method == 'POST':\n        chapter.name = request.form['name']\n        chapter.description = request.form['description']\n        db.session.commit()\n        return redirect(url_for('admin', username=session.get('username')))%c3%82\n\n    return render_template('addchapter.html', chapter=chapter, subject=subject)\n\n@app.route('/quiz/<int:chapter_id>', methods=['GET','POST'])\ndef quiz(chapter_id):\n    chapter = Chapter.query.get(chapter_id)\n    if not chapter:\n        return "Chapter not found!", 404\n\n    questions = Question.query.filter_by(chapter_id=chapter_id).all()\n    return render_template('quiz.html', chapter=chapter, questions=questions)\n\n@app.route('/addquestion/<int:chapter_id>', methods=['GET', 'POST'])\ndef addquestion(chapter_id):\n    chapter = Chapter.query.get(chapter_id)\n    if not chapter:\n        return "Chapter not found", 404\n\n    if request.method == 'POST':\n        text = request.form['text']\n        title = request.form.get('title', '')\n        option1 = request.form['option1']\n        option2 = request.form['option2']\n        option3 = request.form['option3']\n        option4 = request.form['option4']\n        correct_option = request.form['correct_option']\n        marks = request.form.get('marks', 1, type=int)\n\n        new_question = Question(\n            title=title,\n            text=text,\n            option1=option1,\n            option2=option2,\n            option3=option3,\n            option4=option4,\n            correct_option=correct_option,\n            marks=marks,\n            chapter_id=chapter_id\n        )\n        db.session.add(new_question)\n        db.session.commit()\n\n        username = session.get('username')\n        if not username:\n            return redirect(url_for('login'))\n        return redirect(url_for('admin', username=username))\n\n    chapters = Chapter.query.all()\n    return render_template('addquestion.html', chapter=chapter, chapters=chapters)\n\n@app.route('/newquiz', methods=['GET', 'POST'])\ndef new_quiz():\n    if request.method == 'POST':\n        chapter_id = request.form['chapter_id']\n        quiz_date = request.form['quiz_date']\n        duration = request.form['quiz_time']\n        total_marks = request.form['quiz_marks']\n\n        if not chapter_id or not quiz_date or not duration or not total_marks:\n            return render_template('NewQuiz.html', error="All fields are required!")\n\n        new_quiz = Quiz(\n            chapter_id=chapter_id,\n            quiz_date=datetime.strptime(quiz_date, '%Y-%m-%d').date(),\n            duration=int(duration),\n            total_marks=int(total_marks)\n        )\n        db.session.add(new_quiz)\n        db.session.commit()\n\n        username = session.get('username')\n        if not username:\n            return redirect(url_for('login'))\n\n        return redirect(url_for('admin', username=username))\n\n    chapters = Chapter.query.all()\n    return render_template('NewQuiz.html', chapters=chapters, error=None)\n\n@app.route('/logout')\ndef logout():\n    session.pop('username', None)\n    return redirect(url_for('login'))\n\n# ========================================\n# APPLICATION ENTRY POINT\n# ========================================\n\nif __name__ == "__main__":\n    port = int(os.environ.get('PORT', 8000))\n    app.run(host='0.0.0.0', port=port, debug=False)\n
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+import os
+
+app = Flask(__name__)
+
+# Configuration
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL') or 'sqlite:///site.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+class UserDetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    # More fields can be added as per requirement
+
+class Subject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    chapters = db.relationship('Chapter', backref='subject', cascade='all, delete-orphan')
+
+class Chapter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    questions = db.relationship('Question', backref='chapter', cascade='all, delete-orphan')
+
+class Question(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(200), nullable=False)
+    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
+
+class Result(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    score = db.Column(db.Float, nullable=False)
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+
+class Quiz(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    questions = db.relationship('Question', backref='quiz', cascade='all, delete-orphan')
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
+
+# Example routes
+@app.route('/login', methods=['POST'])
+def login():
+    # Login logic here
+    return jsonify({'message': 'Logged in successfully'}), 200
+
+@app.route('/register', methods=['POST'])
+def register():
+    # Registration logic here
+    return jsonify({'message': 'Registered successfully'}), 201
+
+@app.route('/userdash')
+def userdash():
+    return jsonify({'message': 'User Dashboard'}), 200
+
+@app.route('/admin')
+def admin():
+    return jsonify({'message': 'Admin Dashboard'}), 200
+
+@app.route('/addsubject', methods=['POST'])
+def addsubject():
+    # Add subject logic here
+    return jsonify({'message': 'Subject added'}), 201
+
+@app.route('/addchapter', methods=['POST'])
+def addchapter():
+    # Add chapter logic here
+    return jsonify({'message': 'Chapter added'}), 201
+
+@app.route('/delete_chapter/<int:id>', methods=['DELETE'])
+def delete_chapter(id):
+    # Delete chapter logic here
+    return jsonify({'message': 'Chapter deleted'}), 200
+
+@app.route('/delete_subject/<int:id>', methods=['DELETE'])
+def delete_subject(id):
+    # Delete subject logic here
+    return jsonify({'message': 'Subject deleted'}), 200
+
+@app.route('/edit_chapter/<int:id>', methods=['PUT'])
+def edit_chapter(id):
+    # Edit chapter logic here
+    return jsonify({'message': 'Chapter edited'}), 200
+
+@app.route('/quiz')
+def quiz():
+    return jsonify({'message': 'Quiz endpoint'}), 200
+
+@app.route('/addquestion', methods=['POST'])
+def addquestion():
+    # Add question logic here
+    return jsonify({'message': 'Question added'}), 201
+
+@app.route('/newquiz', methods=['POST'])
+def newquiz():
+    # Create new quiz logic here
+    return jsonify({'message': 'New quiz created'}), 201
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Logout logic here
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 8000)))
