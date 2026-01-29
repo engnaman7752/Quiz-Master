@@ -1,0 +1,20 @@
+# Render.com Configuration for Quiz-Master
+
+web_service:
+  name: quiz-master-web
+  type: web
+  env: node
+  plan: starter
+  region: oregon
+  buildCommand: npm install
+  startCommand: npm start
+
+postgres:
+  name: quiz-master-db
+  type: postgres
+  plan: starter
+  region: oregon
+  database: quiz_master_db
+  user: db_user
+  password: secure_password
+  connectionString: postgres://db_user:secure_password@quiz-master-db:5432/quiz_master_db
