@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Results{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Results Header -->
+    <div class="text-center mb-5">
+        <h1><i class="fas fa-trophy"></i> Quiz Results</h1>
+        <h3 class="mt-3">{{ quiz.title or 'Quiz' }}</h3>
+    </div>
+    
+    <!-- Score Card -->
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card glass-card text-center p-4">
+                <div class="card-body">
+                    <h2 class="mb-4">Your Score</h2>
+                    <div class="display-1 mb-3" style="color: {% if attempt.percentage >= 60 %}var(--success-color){% elif attempt.percentage >= 40 %}var(--warning-color){% else %}var(--danger-color){% endif %}">
+                        {{ attempt.score }}/{{ attempt.total_marks }}
+                    </div>
+                    <h3 class="mb-4">{{ attempt.percentage|round(1) }}%</h3>
+                    
+                    <div class="row text-center mt-4">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <i class="fas fa-clock stat-icon"></i>
+                                <h5>Time Taken</h5>
+                                <p class="h4">
+                                    {% if attempt.time_taken %}
+                                        {{ (attempt.time_taken // 60)|int }} min {{ attempt.time_taken % 60 }} sec
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <i class="fas fa-check-circle stat-icon"></i>
+                                <h5>Correct</h5>
+                                <p class="h4 text-success">
+                                    {{ question_results|selectattr('answer.is_correct')|list|length }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <i class="fas fa-times-circle stat-icon"></i>
+                                <h5>Incorrect</h5>
+                                <p class="h4 text-danger">
+                                    {{ question_results|rejectattr('answer.is_correct')|list|length }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if quiz.passing_marks %}
+                    <div class="mt-4">
+                        {% if attempt.score >= quiz.passing_marks %}
+                        <span class="badge bg-success p-3">
+                            <i class="fas fa-medal"></i> Passed! (Pass mark: {{ quiz.passing_marks }})
+                        </span>
+                        {% else %}
+                        <span class="badge bg-danger p-3">
+                            <i class="fas fa-times"></i> Not Passed (Pass mark: {{ quiz.passing_marks }})
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Answers -->
+    {% if quiz.show_answers %}
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <h3 class="mb-4"><i class="fas fa-list"></i> Detailed Answers</h3>
+            
+            {% for result in question_results %}
+            <div class="card mb-3 {% if result.answer.is_correct %}border-success{% else %}border-danger{% endif %}">
+                <div class="card-header {% if result.answer.is_correct %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if result.answer.is_correct %}check{% else %}times{% endif %}-circle"></i>
+                        Question {{ loop.index }}
+                        <span class="badge bg-light text-dark float-end">
+                            {{ result.answer.marks_obtained }}/{{ result.question.marks }} marks
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-2">{{ result.question.title }}</h6>
+                    <p class="mb-3">{{ result.question.text }}</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Your Answer:</strong>
+                            <div class="p-2 border rounded {% if result.answer.is_correct %}bg-success-subtle{% else %}bg-danger-subtle{% endif %}">
+                                Option {{ result.answer.selected_option }}: 
+                                {{ result.question['option' ~ result.answer.selected_option] }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Correct Answer:</strong>
+                            <div class="p-2 border rounded bg-success-subtle">
+                                Option {{ result.question.correct_option }}: 
+                                {{ result.question['option' ~ result.question.correct_option] }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Buttons -->
+    <div class="text-center my-5">
+        <a href="{{ url_for('userdash', username=session.get('username')) }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-home"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+// Clear saved quiz progress from localStorage
+localStorage.removeItem('quiz_{{ attempt.id }}');
+</script>
+{% endblock %}

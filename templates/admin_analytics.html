@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4"><i class="fas fa-chart-bar"></i> Analytics Dashboard</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-users text-primary" style="font-size: 3rem;"></i>
+                <h3 class="mt-3">{{ stats.total_students }}</h3>
+                <p class="text-muted">Total Students</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-clipboard-list text-success" style="font-size: 3rem;"></i>
+                <h3 class="mt-3">{{ stats.total_quizzes }}</h3>
+                <p class="text-muted">Quizzes Taken</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-percentage text-warning" style="font-size: 3rem;"></i>
+                <h3 class="mt-3">{{ stats.average_score|round(1) }}%</h3>
+                <p class="text-muted">Average Score</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div class="row mb-5">
+        <div class="col-md-6 mb-4">
+            <div class="card glass-card">
+                <div class="card-body">
+                    <h5 class="card-title">Score Distribution</h5>
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card glass-card">
+                <div class="card-body">
+                    <h5 class="card-title">Quiz Attempts Over Time</h5>
+                    <canvas id="attemptsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Quiz Attempts -->
+    <div class="card glass-card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-history"></i> Recent Quiz Attempts</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Quiz</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Time Taken</th>
+                            <th>Completed At</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if attempts %}
+                            {% for attempt in attempts|sort(attribute='completed_at', reverse=True)|list[:20] %}
+                            <tr>
+                                <td>{{ attempt.student.name }}</td>
+                                <td>{{ attempt.quiz.title or 'Quiz #' ~ attempt.quiz_id }}</td>
+                                <td>{{ attempt.score }}/{{ attempt.total_marks }}</td>
+                                <td>
+                                    <span class="badge {% if attempt.percentage >= 60 %}bg-success{% elif attempt.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ attempt.percentage|round(1) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if attempt.time_taken %}
+                                        {{ (attempt.time_taken // 60)|int }}m {{ attempt.time_taken % 60 }}s
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') if attempt.completed_at else 'N/A' }}</td>
+                                <td>
+                                    {% if attempt.quiz.passing_marks and attempt.score >= attempt.quiz.passing_marks %}
+                                    <span class="badge bg-success">Passed</span>
+                                    {% elif attempt.quiz.passing_marks %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No quiz attempts yet</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Score Distribution Chart
+const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+const scoreRanges = {
+    '0-40%': 0,
+    '40-60%': 0,
+    '60-80%': 0,
+    '80-100%': 0
+};
+
+{% for attempt in attempts %}
+    {% if attempt.percentage < 40 %}
+        scoreRanges['0-40%']++;
+    {% elif attempt.percentage < 60 %}
+        scoreRanges['40-60%']++;
+    {% elif attempt.percentage < 80 %}
+        scoreRanges['60-80%']++;
+    {% else %}
+        scoreRanges['80-100%']++;
+    {% endif %}
+{% endfor %}
+
+new Chart(scoreCtx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(scoreRanges),
+        datasets: [{
+            label: 'Number of Attempts',
+            data: Object.values(scoreRanges),
+            backgroundColor: [
+                'rgba(239, 68, 68, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(16, 185, 129, 0.7)'
+            ],
+            borderColor: [
+                'rgb(239, 68, 68)',
+                'rgb(245, 158, 11)',
+                'rgb(59, 130, 246)',
+                'rgb(16, 185, 129)'
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Attempts Over Time Chart (simple version)
+const attemptsCtx = document.getElementById('attemptsChart').getContext('2d');
+const attemptDates = {};
+
+{% for attempt in attempts %}
+    {% if attempt.completed_at %}
+        const date = '{{ attempt.completed_at.strftime("%Y-%m-%d") }}';
+        attemptDates[date] = (attemptDates[date] || 0) + 1;
+    {% endif %}
+{% endfor %}
+
+const sortedDates = Object.keys(attemptDates).sort();
+const attemptCounts = sortedDates.map(date => attemptDates[date]);
+
+new Chart(attemptsCtx, {
+    type: 'line',
+    data: {
+        labels: sortedDates.slice(-10), // Last 10 dates
+        datasets: [{
+            label: 'Quiz Attempts',
+            data: attemptCounts.slice(-10),
+            borderColor: 'rgb(99, 102, 241)',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
