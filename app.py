@@ -239,7 +239,27 @@ def userdash(username):
     if 'username' not in session or session['username'] != username:
         return redirect(url_for('user'))
     
-    return render_template('userdash.html', n=username)
+    user = userdetail.query.filter_by(username=username).first()
+    if not user:
+        return redirect(url_for('user'))
+    
+    # Get assigned quizzes for this student
+    assignments = QuizAssignment.query.filter_by(student_id=user.id).all()
+    
+    # Get all quizzes (fallback if no assignments)
+    all_quizzes = Quiz.query.filter_by(is_active=True).all()
+    
+    # Get quiz attempts for this student
+    attempts = QuizAttempt.query.filter_by(student_id=user.id, completed_at=None).all()
+    completed_attempts = QuizAttempt.query.filter_by(student_id=user.id).filter(QuizAttempt.completed_at != None).all()
+    
+    return render_template('userdash.html', 
+                         n=username, 
+                         user=user,
+                         assignments=assignments,
+                         all_quizzes=all_quizzes,
+                         in_progress=attempts,
+                         completed=completed_attempts)
 
 @app.route('/admin/<username>')
 def admin(username):

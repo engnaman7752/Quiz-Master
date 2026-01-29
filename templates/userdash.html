@@ -1,101 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Dashboard</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <div id="container">
-      <h1>Welcome,{{n}}</h1>
+{% extends "base.html" %}
 
-      <div id="navbar">
-        <a href="/userdash">Home |</a>
-        <a href="/scores">Scores |</a>
-        <a href="/summary">Summary |</a>
-        <a href="/user">Logout|</a>
-        <input
-          type="text"
-          id="search"
-          name="Search"
-          placeholder="Search"
-          required
-        />
-        <button class="btn-start">Search</button>
-      </div>
+{% block title %}Student Dashboard{% endblock %}
 
-      <h2>Upcoming Quizzes</h2>
-      <table id="quiz-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>No. of Questions</th>
-            <th>Date</th>
-            <th>Duration</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>10</td>
-            <td>2025-01-20</td>
-            <td>30 minutes</td>
-            <td>
-              <button class="btn-start"><a href="/start">Start</a></button>
-              <button class="btn-view"><a href="view.html">View</a></button>
-            </td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>15</td>
-            <td>2025-01-22</td>
-            <td>45 minutes</td>
-            <td>
-              <button class="btn-start"><a href="start.html">Start</a></button>
-              <button class="btn-view"><a href="view.html">View</a></button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <h2>PAST QUIZZES</h2>
-      <table id="quiz-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>No. of Questions</th>
-            <th>Date</th>
-            <th>Duration</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>10</td>
-            <td>2025-01-20</td>
-            <td>30 minutes</td>
-            <td>
-              <button class="btn-start"><a href="/start">Start</a></button>
-              <button class="btn-view"><a href="view.html">View</a></button>
-            </td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>15</td>
-            <td>2025-01-22</td>
-            <td>45 minutes</td>
-            <td>
-              <button class="btn-start"><a href="start.html">Start</a></button>
-              <button class="btn-view"><a href="view.html">View</a></button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="fas fa-tachometer-alt"></i> Welcome, {{ n }}!</h2>
+            <p class="text-muted">Here are your assigned quizzes and progress</p>
+        </div>
     </div>
-  </body>
-</html>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-clipboard-list text-primary" style="font-size: 2.5rem;"></i>
+                <h4 class="mt-3">{{ assignments|length + all_quizzes|length }}</h4>
+                <p class="text-muted">Available Quizzes</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-clock text-warning" style="font-size: 2.5rem;"></i>
+                <h4 class="mt-3">{{ in_progress|length }}</h4>
+                <p class="text-muted">In Progress</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-check-circle text-success" style="font-size: 2.5rem;"></i>
+                <h4 class="mt-3">{{ completed|length }}</h4>
+                <p class="text-muted">Completed</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assigned Quizzes -->
+    <div class="mb-5">
+        <h3 class="mb-3"><i class="fas fa-tasks"></i> Assigned Quizzes</h3>
+        {% if assignments %}
+        <div class="row">
+            {% for assignment in assignments %}
+            <div class="col-md-6 mb-3">
+                <div class="card glass-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ assignment.quiz.title or 'Quiz #' ~ assignment.quiz_id }}</h5>
+                        <p class="card-text">{{ assignment.quiz.description or 'No description available' }}</p>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> Duration: {{ assignment.quiz.duration }} minutes<br>
+                                <i class="fas fa-star"></i> Total Marks: {{ assignment.quiz.total_marks }}<br>
+                                {% if assignment.due_date %}
+                                <i class="fas fa-calendar"></i> Due: {{ assignment.due_date.strftime('%Y-%m-%d %H:%M') }}<br>
+                                {% endif %}
+                                <i class="fas fa-redo"></i> Max Attempts: {{ assignment.max_attempts }}
+                            </small>
+                        </div>
+                        <form method="POST" action="{{ url_for('start_quiz', quiz_id=assignment.quiz_id) }}">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Start Quiz
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No quizzes assigned yet. Check back later!
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- All Available Quizzes -->
+    {% if all_quizzes %}
+    <div class="mb-5">
+        <h3 class="mb-3"><i class="fas fa-list"></i> All Available Quizzes</h3>
+        <div class="card glass-card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Chapter</th>
+                                <th>Duration</th>
+                                <th>Total Marks</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz in all_quizzes %}
+                            <tr>
+                                <td>{{ quiz.title or 'Quiz #' ~ quiz.id }}</td>
+                                <td>{{ quiz.chapter.name }}</td>
+                                <td>{{ quiz.duration }} min</td>
+                                <td>{{ quiz.total_marks }}</td>
+                                <td>{{ quiz.quiz_date.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('start_quiz', quiz_id=quiz.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-play"></i> Start
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Completed Quizzes -->
+    {% if completed %}
+    <div class="mb-5">
+        <h3 class="mb-3"><i class="fas fa-history"></i> Completed Quizzes</h3>
+        <div class="card glass-card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Quiz</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Time Taken</th>
+                                <th>Completed At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in completed|sort(attribute='completed_at', reverse=True) %}
+                            <tr>
+                                <td>{{ attempt.quiz.title or 'Quiz #' ~ attempt.quiz_id }}</td>
+                                <td>{{ attempt.score }}/{{ attempt.total_marks }}</td>
+                                <td>
+                                    <span class="badge {% if attempt.percentage >= 60 %}bg-success{% elif attempt.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ attempt.percentage|round(1) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if attempt.time_taken %}
+                                        {{ (attempt.time_taken // 60)|int }}m {{ attempt.time_taken % 60 }}s
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_results', attempt_id=attempt.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View Results
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
